@@ -22,14 +22,13 @@ import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.util.GradleVersion
-import java.io.File
 
 @Suppress("unused")
 class OpenCloverPlugin : Plugin<Project> {
     companion object {
         const val MINIMUM_GRADLE_VERSION = "5.4"
         const val PLUGIN_ID = "com.github.bjornvester.openclover"
-        private const val CLOVER_DB_TMP_DIR = "build/clover-db-tmp" // TODO: Make this configurable
+        private const val CLOVER_DB_TMP_DIR = "clover-db-tmp" // TODO: Make this configurable
 
         const val CLOVER_TASK_INST_JAVA = "cloverInstrumentJava"
         const val CLOVER_TASK_INST_JAVA_TEST = "cloverInstrumentJavaTest"
@@ -46,8 +45,8 @@ class OpenCloverPlugin : Plugin<Project> {
 
         fun <T : Task?> getCloverDbOutputDirFromProvider(taskProvider: TaskProvider<T>): Provider<Directory> = taskProvider.map { getCloverDbOutputDir(it!!).get() }
         fun getCloverDbOutputDir(task: Task): Provider<Directory> = task.project.layout.buildDirectory.dir("clover-db-${task.name}")
-        fun getCloverDbTmpFilePath() = "$CLOVER_DB_TMP_DIR/clover.db"
-        fun getCloverDbTmpDir() = File(CLOVER_DB_TMP_DIR)
+
+        private fun getCloverDbTmpDir(project: Project): String = project.layout.buildDirectory.dir(CLOVER_DB_TMP_DIR).get().asFile.absolutePath
 
         fun logDbDirs(task: Task, dbDirInput: Provider<Directory>, dbDirOutput: Provider<Directory>) {
             val dbDirInputString = when {
@@ -106,6 +105,7 @@ class OpenCloverPlugin : Plugin<Project> {
                 instJavaTask.inputDir.set(inputDir)
             }
             instJavaTask.sourcesOutputDir.set(project.layout.buildDirectory.dir("/generated/sources/openclover/main/java"))
+            instJavaTask.dbTmpDirPath.set(getCloverDbTmpDir(project))
             instJavaTask.dbDirOutput.set(getCloverDbOutputDir(instJavaTask))
         }
     }
@@ -120,6 +120,7 @@ class OpenCloverPlugin : Plugin<Project> {
             }
             instJavaTestTask.sourcesOutputDir.set(project.layout.buildDirectory.dir("/generated/sources/openclover/test/java"))
             instJavaTestTask.dbDirInput.set(instJavaTask.map { it.dbDirOutput.get() })
+            instJavaTestTask.dbTmpDirPath.set(getCloverDbTmpDir(project))
             instJavaTestTask.dbDirOutput.set(getCloverDbOutputDir(instJavaTestTask))
             instJavaTestTask.dependsOn(instJavaTask)
             project.rootProject.tasks.withType(GenerateCloverReportTask::class.java) { mergeReportTask ->
@@ -177,6 +178,7 @@ class OpenCloverPlugin : Plugin<Project> {
 
             cloverTestTask.testClassesDirs = project.files(compileInstJavaTestTask.destinationDir)
             cloverTestTask.dbDirInput.set(cloverInstJavaTestTask.get().dbDirOutput)
+            cloverTestTask.dbTmpDirPath.set(getCloverDbTmpDir(project))
             cloverTestTask.dbDirOutput.set(getCloverDbOutputDir(cloverTestTask))
 
             project.plugins.withType(GroovyPlugin::class.java) {
@@ -262,6 +264,7 @@ class OpenCloverPlugin : Plugin<Project> {
             }
             instGroovyTask.sourcesOutputDir.set(project.layout.buildDirectory.dir("/generated/sources/openclover/main/groovy"))
             instGroovyTask.dbDirInput.set(instJavaTestTask.dbDirOutput)
+            instGroovyTask.dbTmpDirPath.set(getCloverDbTmpDir(project))
             instGroovyTask.dbDirOutput.set(getCloverDbOutputDir(instGroovyTask))
             instGroovyTask.dependsOn(instJavaTestTask)
         }
@@ -276,6 +279,7 @@ class OpenCloverPlugin : Plugin<Project> {
             }
             instGroovyTestTask.sourcesOutputDir.set(project.layout.buildDirectory.dir("/generated/sources/openclover/test/groovy"))
             instGroovyTestTask.dbDirInput.set(instGroovyTask.dbDirOutput)
+            instGroovyTestTask.dbTmpDirPath.set(getCloverDbTmpDir(project))
             instGroovyTestTask.dbDirOutput.set(getCloverDbOutputDir(instGroovyTestTask))
             instGroovyTestTask.dependsOn(instGroovyTask)
         }
@@ -290,6 +294,7 @@ class OpenCloverPlugin : Plugin<Project> {
             prepareGroverTask.cloverJars.set(cloverConfig)
             prepareGroverTask.inputSourceDirectory.set(instGroovyTask.sourcesOutputDir)
             prepareGroverTask.inputSourceTestDirectory.set(instGroovyTestTask.sourcesOutputDir)
+            prepareGroverTask.dbTmpDirPath.set(getCloverDbTmpDir(project))
             prepareGroverTask.outputDirectory.set(project.layout.buildDirectory.dir("clover-grover"))
         }
     }
@@ -324,10 +329,11 @@ class OpenCloverPlugin : Plugin<Project> {
 
             val dbDirInput = instGroovyTestTask.dbDirOutput
             val dbDirOutput = getCloverDbOutputDir(compileInstGroovyTask)
-            val dbDirTmp = getCloverDbTmpDir().absoluteFile
+            val dbDirTmp = getCloverDbTmpDir(project)
 
             compileInstGroovyTask.dependsOn(instGroovyTestTask)
             compileInstGroovyTask.inputs.dir(dbDirInput)
+            compileInstGroovyTask.inputs.property("dbTmpDir", dbDirTmp)
             compileInstGroovyTask.outputs.dir(dbDirOutput)
 
             compileInstGroovyTask.doFirst {
@@ -382,10 +388,11 @@ class OpenCloverPlugin : Plugin<Project> {
 
             val dbDirInput = getCloverDbOutputDir(compileInstGroovyTask)
             val dbDirOutput = getCloverDbOutputDir(compileInstGroovyTestTask)
-            val dbDirTmp = getCloverDbTmpDir().absoluteFile
+            val dbDirTmp = getCloverDbTmpDir(project)
 
             compileInstGroovyTestTask.dependsOn(compileInstGroovyTask)
             compileInstGroovyTestTask.inputs.dir(dbDirInput)
+            compileInstGroovyTestTask.inputs.property("dbTmpDir", dbDirTmp)
             compileInstGroovyTestTask.outputs.dir(dbDirOutput)
 
             compileInstGroovyTestTask.doFirst {

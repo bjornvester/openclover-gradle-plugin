@@ -1,9 +1,10 @@
 package com.github.bjornvester
 
-import com.github.bjornvester.OpenCloverPlugin.Companion.getCloverDbTmpDir
 import com.github.bjornvester.OpenCloverPlugin.Companion.logDbDirs
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -17,6 +18,9 @@ open class CloverTestTask : Test() {
 
     @get:OutputDirectory
     var dbDirOutput: DirectoryProperty = project.objects.directoryProperty()
+
+    @get:Input
+    var dbTmpDirPath: Property<String> = project.objects.property(String::class.java)
 
     init {
         group = JavaBasePlugin.VERIFICATION_GROUP
@@ -55,7 +59,7 @@ open class CloverTestTask : Test() {
         val cloverConfig = project.configurations.getByName("openclover")
         classpath = project.files(newClasspath) + cloverConfig
 
-        val dbDirTmp = getCloverDbTmpDir() // Not absolute
+        val dbDirTmp = project.file(dbTmpDirPath)
 
         project.delete(dbDirTmp)
         project.mkdir(dbDirTmp)

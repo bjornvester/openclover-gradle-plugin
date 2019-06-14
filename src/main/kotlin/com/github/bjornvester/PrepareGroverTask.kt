@@ -2,7 +2,6 @@ package com.github.bjornvester
 
 import com.atlassian.clover.CloverNames
 import com.atlassian.clover.cfg.instr.InstrumentationConfig
-import com.github.bjornvester.OpenCloverPlugin.Companion.getCloverDbTmpFilePath
 import com_atlassian_clover.CloverVersionInfo
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -24,6 +23,9 @@ open class PrepareGroverTask : DefaultTask() {
 
     @get:InputDirectory
     val inputSourceTestDirectory: DirectoryProperty = project.objects.directoryProperty()
+
+    @get:Input
+    var dbTmpDirPath: Property<String> = project.objects.property(String::class.java)
 
     @get:OutputDirectory
     val outputDirectory: DirectoryProperty = project.objects.directoryProperty()
@@ -57,7 +59,7 @@ open class PrepareGroverTask : DefaultTask() {
 
     private fun createInstrumentationConfiguration() {
         val config = InstrumentationConfig()
-        config.setInitstring(getCloverDbTmpFilePath())
+        config.setInitstring("${dbTmpDirPath.get()}/clover.db")
         config.includedFiles = inputSourceDirectory.asFileTree.files + inputSourceTestDirectory.asFileTree.files
         config.saveToFile(outputDirectory.file(CloverNames.getGroverConfigFileName()).get().asFile)
     }

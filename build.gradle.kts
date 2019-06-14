@@ -20,7 +20,7 @@ tasks.test {
 }
 
 group = "com.github.bjornvester"
-version = "0.3"
+version = "0.4"
 
 gradlePlugin {
     plugins {
@@ -39,6 +39,7 @@ pluginBundle {
         "openCloverPlugin" {
             displayName = "Gradle OpenClover plugin"
             tags = listOf("openclover", "coverage")
+            description = "Adds OpenClover test coverage reporting to your project. Works with the Gradle build cache. Please see the Github project page for details."
         }
     }
 }

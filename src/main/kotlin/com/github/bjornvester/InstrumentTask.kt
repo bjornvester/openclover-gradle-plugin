@@ -3,12 +3,11 @@ package com.github.bjornvester
 import com.atlassian.clover.cfg.instr.java.JavaInstrumentationConfig
 import com.atlassian.clover.instr.java.FileInstrumentationSource
 import com.atlassian.clover.instr.java.Instrumenter
-import com.github.bjornvester.OpenCloverPlugin.Companion.getCloverDbTmpDir
-import com.github.bjornvester.OpenCloverPlugin.Companion.getCloverDbTmpFilePath
 import com.github.bjornvester.OpenCloverPlugin.Companion.logDbDirs
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import java.io.StringWriter
 
@@ -21,6 +20,9 @@ open class InstrumentTask : DefaultTask() {
     @get:Optional
     @get:InputDirectory
     var inputDir: DirectoryProperty = project.objects.directoryProperty()
+
+    @get:Input
+    var dbTmpDirPath: Property<String> = project.objects.property(String::class.java)
 
     @get:OutputDirectory
     var sourcesOutputDir: DirectoryProperty = project.objects.directoryProperty()
@@ -40,15 +42,14 @@ open class InstrumentTask : DefaultTask() {
     @TaskAction
     fun doInstrumentation() {
         var config = JavaInstrumentationConfig()
-        val dbDirTmp = getCloverDbTmpDir().absoluteFile
-        config.setInitstring(getCloverDbTmpFilePath())
-        project.delete(dbDirTmp)
-        project.mkdir(dbDirTmp)
+        config.setInitstring("${dbTmpDirPath.get()}/clover.db")
+        project.delete(dbTmpDirPath)
+        project.mkdir(dbTmpDirPath)
 
         if (dbDirInput.isPresent) {
             project.copy {
                 it.from(dbDirInput.get())
-                it.into(dbDirTmp)
+                it.into(dbTmpDirPath)
             }
         }
 
@@ -87,10 +88,10 @@ open class InstrumentTask : DefaultTask() {
         }
 
         project.sync {
-            it.from(dbDirTmp)
+            it.from(dbTmpDirPath)
             it.into(dbDirOutput)
         }
-        project.delete(dbDirTmp)
+        project.delete(dbTmpDirPath)
 
         logDbDirs(this, dbDirInput, dbDirOutput)
     }
