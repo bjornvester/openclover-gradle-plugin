@@ -5,6 +5,7 @@ import com.atlassian.clover.reporters.Current
 import com.atlassian.clover.reporters.Format
 import com.github.bjornvester.OpenCloverPlugin.Companion.logDbDirs
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -14,8 +15,18 @@ import java.io.File
 
 //@CacheableTask // TODO: Figure out if it can (or should) be cached
 open class GenerateCloverReportTask : DefaultTask() {
+    companion object {
+        val REPORT_TYPE_MAP = mapOf(
+                "HTML" to Format.DEFAULT_HTML,
+                "XML" to Format.DEFAULT_XML,
+                "JSON" to Format.DEFAULT_JSON,
+                "PDF" to Format.DEFAULT_PDF,
+                "TEXT" to Format.DEFAULT_TEXT
+        )
+    }
+
     @get:Input
-    var reportTitle: Property<String> = project.objects.property(String::class.java)
+    var reportTitle: Property<String> = getCloverExtension().reportTitle
 
     @get:InputDirectory
     @get:SkipWhenEmpty
@@ -28,8 +39,11 @@ open class GenerateCloverReportTask : DefaultTask() {
     @get:InputFiles
     var testSourcesFiles: ListProperty<File> = project.objects.listProperty(File::class.java)
 
+    @get:Input
+    var reportTypes: ListProperty<String> = getCloverExtension().reportTypes
+
     @get:OutputDirectory
-    var reportDir: DirectoryProperty = project.objects.directoryProperty()
+    var reportDir: DirectoryProperty = getCloverExtension().reportDir
 
     init {
         group = LifecycleBasePlugin.VERIFICATION_GROUP
@@ -38,25 +52,37 @@ open class GenerateCloverReportTask : DefaultTask() {
 
     @TaskAction
     fun generateReport() {
-        val config = Current()
-        config.initString = dbDir.file("clover.db").get().toString()
-        config.outFile = reportDir.get().asFile
-        config.mainFileName = "index.html"
-        config.format = Format.DEFAULT_HTML
-        config.title = reportTitle.get()
-
-        testSourcesFiles.get().forEach {
-            project.logger.info("Adding test source to configuration: $it")
-            config.addTestSourceFile(it)
+        if (reportTypes.get().isEmpty()) {
+            throw GradleException("The reportTypes property must not be empty")
         }
 
-        testResults.get().forEach {
-            config.addTestResultFile(it)
-        }
+        reportTypes.get().forEach { reportType ->
+            val config = Current()
+            config.initString = dbDir.file("clover.db").get().toString()
+            config.outFile = when (reportType) {
+                "HTML" -> reportDir.get().asFile
+                "TEXT" -> reportDir.get().file("openclover.txt").asFile
+                else -> reportDir.get().file("openclover.${reportType.toLowerCase()}").asFile
+            }
+            config.mainFileName = "index.html"
+            config.title = reportTitle.get()
+            config.format = REPORT_TYPE_MAP[reportType]
+                    ?: throw GradleException("Unknown report type '$reportType'. Supported types are ${REPORT_TYPE_MAP.keys}")
 
-        CloverReporter.buildReporter(config).execute()
-        logDbDirs(this, dbDir, project.objects.directoryProperty())
-        project.logger.info("Generated OpenClover report in ${reportDir.get()}")
+            testSourcesFiles.get().forEach {
+                project.logger.info("Adding test source to configuration: $it")
+                config.addTestSourceFile(it)
+            }
+
+            testResults.get().forEach {
+                config.addTestResultFile(it)
+            }
+
+            CloverReporter.buildReporter(config).execute()
+            logDbDirs(this, dbDir, project.objects.directoryProperty())
+            project.logger.info("Generated OpenClover report of type $reportType in ${reportDir.get()}")
+        }
     }
 
+    private fun getCloverExtension() = project.extensions.getByName("openclover") as OpenCloverPluginExtension
 }

@@ -75,10 +75,10 @@ class OpenCloverPlugin : Plugin<Project> {
         project.logger.debug("Applying $PLUGIN_ID to project ${project.name}")
         project.plugins.apply(BasePlugin::class.java)
         verifyGradleVersion()
-        val extension = project.extensions.create("openclover", OpenCloverPluginExtension::class.java, project)
+        project.extensions.create("openclover", OpenCloverPluginExtension::class.java, project)
         val cloverConfig = createCloverConfig(project)
 
-        addTaskCloverMergedReport(project, extension)
+        addTaskCloverMergedReport(project)
 
         project.plugins.withType(JavaPlugin::class.java) {
             addTaskInstJava(project)
@@ -86,7 +86,7 @@ class OpenCloverPlugin : Plugin<Project> {
             addTaskCompileInstJava(project)
             addTaskCompileInstJavaTest(project)
             addTaskCloverTest(project/*, cloverConfig*/) // TODO: Support custom test tasks as well
-            addTaskCloverReport(project, extension)
+            addTaskCloverReport(project)
         }
 
         project.plugins.withType(GroovyPlugin::class.java) {
@@ -218,13 +218,12 @@ class OpenCloverPlugin : Plugin<Project> {
         }
     }
 
-    private fun addTaskCloverReport(project: Project, extension: OpenCloverPluginExtension) {
+    private fun addTaskCloverReport(project: Project) {
         project.tasks.register(CLOVER_TASK_REPORT, GenerateCloverReportTask::class.java) { reportTask ->
             val cloverTestTask = project.tasks.named(CLOVER_TASK_TEST, Test::class.java)
             val compileJavaTestTask = project.tasks.named("compileTestJava", JavaCompile::class.java)
             val instGroovyTask = project.tasks.findByName(CLOVER_TASK_INST_GROOVY_JOINT_JAVA_TEST) as? InstrumentTask
             reportTask.dependsOn(cloverTestTask)
-            reportTask.reportTitle = extension.reportTitle
             reportTask.dbDir.set(getCloverDbOutputDir(cloverTestTask.get()))
 
             project.fileTree(cloverTestTask.get().reports.junitXml.destination).matching {
@@ -233,7 +232,6 @@ class OpenCloverPlugin : Plugin<Project> {
                 reportTask.testResults.add(it)
             }
 
-            reportTask.reportDir.set(extension.reportDir)
             reportTask.testSourcesFiles.addAll(compileJavaTestTask.get().source)
             if (instGroovyTask != null) {
                 reportTask.testSourcesFiles.addAll(instGroovyTask.sourcesOutputDir.map { it.asFileTree.files })
@@ -241,16 +239,14 @@ class OpenCloverPlugin : Plugin<Project> {
         }
     }
 
-    private fun addTaskCloverMergedReport(project: Project, extension: OpenCloverPluginExtension) {
+    private fun addTaskCloverMergedReport(project: Project) {
         if (project == project.rootProject && project.subprojects.isNotEmpty()) {
             val cloverMergeDbTask = project.tasks.register("cloverMergeDb", MergeDbTask::class.java) { mergeDbTask ->
                 mergeDbTask.dbDir.set(getCloverDbOutputDir(mergeDbTask))
             }
             project.tasks.register(CLOVER_TASK_MERGED_REPORT, GenerateCloverReportTask::class.java) { reportTask ->
                 reportTask.dependsOn(cloverMergeDbTask)
-                reportTask.reportTitle = extension.reportTitle
                 reportTask.dbDir.set(cloverMergeDbTask.get().dbDir)
-                reportTask.reportDir.set(extension.reportDir)
             }
         }
     }

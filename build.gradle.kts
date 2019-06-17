@@ -20,7 +20,7 @@ tasks.test {
 }
 
 group = "com.github.bjornvester"
-version = "0.5"
+version = "0.5.1"
 
 gradlePlugin {
     plugins {
@@ -39,7 +39,7 @@ pluginBundle {
     (plugins) {
         "openCloverPlugin" {
             displayName = "Gradle OpenClover plugin"
-            description = "Changes: Reduce logging on INFO level"
+            description = "Changes: Support all report types in OpenClover (though not yet documented)"
         }
     }
 }
