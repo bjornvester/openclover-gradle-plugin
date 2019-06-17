@@ -12,7 +12,7 @@ At this time, there are a few important limitations to be aware of:
 * The plugin creates a new Test task based on the existing "test" task. But it will not copy all configurations over. So if you have configured the test task, you may need to do the same for the "cloverTest" task. 
 * As for the test task, the plugin also creates new compile tasks based on the existing ones. Similarly, if you have customized the existing ones, you may need to do the same for these as well.
 * It does not support incremental compilation. This is due to limitations in OpenClover itself.
-* It uses absolute paths for the OpenClover database. This is needed due to limitations in OpenClover, and means that the build cache will only work if you use the same project directory path.
+* It uses absolute paths for the OpenClover database. This is needed due to limitations in OpenClover, and means that the build cache will only be used if you use the same project directory path.
 
 # Status
 The main priority has been to get OpenClover working with up-to-date checking and the build cache. This is working now for the basic usage og Java and Groovy.
@@ -38,6 +38,8 @@ buildscript {
 ```
 
 At this time, there is not much else to configure. This will hopefully be addressed in a future version.
+
+To actually run clover, use the task "cloverReport" for a single project, or "cloverMergedReport" in the root project for multi-projects.  
 
 If you run into a problem with OpenClover itself, you can find the list of open issues over on the official [OpenClover repository](https://bitbucket.org/openclover/clover/issues) on Bitbucket. 
 

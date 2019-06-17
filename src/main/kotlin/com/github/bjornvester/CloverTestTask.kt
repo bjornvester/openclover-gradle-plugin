@@ -4,14 +4,12 @@ import com.github.bjornvester.OpenCloverPlugin.Companion.logDbDirs
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 
+@CacheableTask
 open class CloverTestTask : Test() {
     @get:InputDirectory
     var dbDirInput: DirectoryProperty = project.objects.directoryProperty()
@@ -55,7 +53,7 @@ open class CloverTestTask : Test() {
                 else -> it
             }
         }
-        project.logger.info("New classpath for task ${name}: $newClasspath")
+        project.logger.debug("New classpath for task ${name}: $newClasspath")
         val cloverConfig = project.configurations.getByName("openclover")
         classpath = project.files(newClasspath) + cloverConfig
 

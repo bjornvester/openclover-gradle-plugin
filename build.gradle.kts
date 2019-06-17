@@ -20,7 +20,7 @@ tasks.test {
 }
 
 group = "com.github.bjornvester"
-version = "0.4"
+version = "0.5"
 
 gradlePlugin {
     plugins {
@@ -34,12 +34,12 @@ gradlePlugin {
 pluginBundle {
     website = "https://github.com/bjornvester/openclover-gradle-plugin"
     vcsUrl = "https://github.com/bjornvester/openclover-gradle-plugin"
-    description = "Adds OpenClover test coverage reporting to your project. Please see the Github project page for details."
+    description = "Adds OpenClover test coverage reporting to your project. Works with the Gradle build cache. Please see the Github project page for details."
+    tags = listOf("openclover", "clover", "coverage")
     (plugins) {
         "openCloverPlugin" {
             displayName = "Gradle OpenClover plugin"
-            tags = listOf("openclover", "coverage")
-            description = "Adds OpenClover test coverage reporting to your project. Works with the Gradle build cache. Please see the Github project page for details."
+            description = "Changes: Reduce logging on INFO level"
         }
     }
 }

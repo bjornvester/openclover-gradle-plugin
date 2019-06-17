@@ -12,7 +12,7 @@ import org.gradle.api.tasks.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import java.io.File
 
-//@CacheableTask // TODO: Figure out if it can be cached
+//@CacheableTask // TODO: Figure out if it can (or should) be cached
 open class GenerateCloverReportTask : DefaultTask() {
     @get:Input
     var reportTitle: Property<String> = project.objects.property(String::class.java)

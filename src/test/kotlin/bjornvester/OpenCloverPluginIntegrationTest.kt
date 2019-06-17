@@ -6,6 +6,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.lang.management.ManagementFactory
 
+// TODO: These tests do not yet work
 class OpenCloverPluginIntegrationTest {
     @Test
     fun `Applying the plugin is sweet`() {

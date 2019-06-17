@@ -72,7 +72,7 @@ class OpenCloverPlugin : Plugin<Project> {
         } else {
             Logger.setVerbose(true)
         }
-        project.logger.info("Applying $PLUGIN_ID to project ${project.name}")
+        project.logger.debug("Applying $PLUGIN_ID to project ${project.name}")
         project.plugins.apply(BasePlugin::class.java)
         verifyGradleVersion()
         val extension = project.extensions.create("openclover", OpenCloverPluginExtension::class.java, project)
@@ -198,7 +198,7 @@ class OpenCloverPlugin : Plugin<Project> {
                 is JUnitTestFramework -> cloverTestTask.useJUnit()
                 is TestNGTestFramework -> cloverTestTask.useTestNG()
             }
-            project.logger.info("Registered test task: ${cloverTestTask.name}")
+            project.logger.debug("Registered test task: ${cloverTestTask.name}")
         }
 
         // Add this test task to the mergedb task, if present
