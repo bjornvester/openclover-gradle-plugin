@@ -4,6 +4,9 @@ plugins {
     id("com.gradle.plugin-publish") version "0.10.1"
 }
 
+group = "com.github.bjornvester"
+version = "0.5.2-SNAPSHOT"
+
 repositories {
     jcenter()
 }
@@ -19,8 +22,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-group = "com.github.bjornvester"
-version = "0.5.1"
+tasks.withType<Wrapper> {
+    distributionType = Wrapper.DistributionType.ALL
+    gradleVersion = "5.6.2"
+}
 
 gradlePlugin {
     plugins {
