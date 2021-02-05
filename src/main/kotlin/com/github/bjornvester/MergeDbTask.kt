@@ -38,8 +38,8 @@ open class MergeDbTask : DefaultTask() {
         project.mkdir(dbDir)
         if (dbList.size == 1) {
             project.copy {
-                it.from(dbList.single().initString)
-                it.into(dbDir)
+                from(dbList.single().initString)
+                into(dbDir)
             }
         } else {
             CloverDatabase.merge(dbList, dbDir.file("clover.db").get().toString())

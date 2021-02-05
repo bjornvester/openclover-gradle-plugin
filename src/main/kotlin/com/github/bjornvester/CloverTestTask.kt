@@ -62,15 +62,15 @@ open class CloverTestTask : Test() {
         project.delete(dbDirTmp)
         project.mkdir(dbDirTmp)
         project.copy {
-            it.from(dbDirInput)
-            it.into(dbDirTmp)
+            from(dbDirInput)
+            into(dbDirTmp)
         }
 
         super.executeTests()
 
         project.sync {
-            it.from(dbDirTmp)
-            it.into(dbDirOutput)
+            from(dbDirTmp)
+            into(dbDirOutput)
         }
         project.delete(dbDirTmp)
         logDbDirs(this, dbDirInput, dbDirOutput)

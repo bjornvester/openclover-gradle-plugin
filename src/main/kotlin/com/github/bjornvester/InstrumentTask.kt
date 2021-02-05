@@ -48,8 +48,8 @@ open class InstrumentTask : DefaultTask() {
 
         if (dbDirInput.isPresent) {
             project.copy {
-                it.from(dbDirInput.get())
-                it.into(dbTmpDirPath)
+                from(dbDirInput.get())
+                into(dbTmpDirPath)
             }
         }
 
@@ -88,8 +88,8 @@ open class InstrumentTask : DefaultTask() {
         }
 
         project.sync {
-            it.from(dbTmpDirPath)
-            it.into(dbDirOutput)
+            from(dbTmpDirPath)
+            into(dbDirOutput)
         }
         project.delete(dbTmpDirPath)
 

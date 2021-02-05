@@ -1,7 +1,7 @@
 plugins {
     id("java-gradle-plugin")
-    kotlin("jvm") version "1.3.31"
-    id("com.gradle.plugin-publish") version "0.10.1"
+    id("com.gradle.plugin-publish") version "0.12.0"
+    `kotlin-dsl`
 }
 
 group = "com.github.bjornvester"
@@ -12,10 +12,9 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation("org.openclover:clover:4.4.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.2")
+    implementation("org.openclover:clover:4.4.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
 }
 
 tasks.test {
@@ -24,7 +23,11 @@ tasks.test {
 
 tasks.withType<Wrapper> {
     distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = "5.6.2"
+    gradleVersion = "6.8.1"
+}
+
+kotlinDslPluginOptions {
+    experimentalWarning.set(false)
 }
 
 gradlePlugin {

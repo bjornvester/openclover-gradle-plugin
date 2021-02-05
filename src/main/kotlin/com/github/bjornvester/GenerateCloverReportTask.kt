@@ -13,7 +13,7 @@ import org.gradle.api.tasks.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import java.io.File
 
-//@CacheableTask // TODO: Figure out if it can (or should) be cached
+@CacheableTask
 open class GenerateCloverReportTask : DefaultTask() {
     companion object {
         val REPORT_TYPE_MAP = mapOf(
@@ -76,6 +76,13 @@ open class GenerateCloverReportTask : DefaultTask() {
 
             testResults.get().forEach {
                 config.addTestResultFile(it)
+            }
+
+            if (reportType == "PDF") {
+                if (reportTypes.get().size > 1) {
+                    project.logger.warn("OpenClover can only do summery reports in PDF. This is a configuration option that will be enabled for all report types.")
+                }
+                config.summary = true
             }
 
             CloverReporter.buildReporter(config).execute()
