@@ -110,7 +110,7 @@ class OpenCloverPlugin : Plugin<Project> {
             if (inputDir.asFile.exists()) {
                 this.inputDir.set(inputDir)
             }
-            sourcesOutputDir.set(project.layout.buildDirectory.dir("/generated/sources/openclover/main/java"))
+            sourcesOutputDir.set(project.layout.buildDirectory.dir("generated/sources/openclover/main/java"))
             dbTmpDirPath.set(getCloverDbTmpDir(project))
             dbDirOutput.set(getCloverDbOutputDir(this))
         }
@@ -124,7 +124,7 @@ class OpenCloverPlugin : Plugin<Project> {
             if (inputDir.asFile.exists()) {
                 this.inputDir.set(inputDir)
             }
-            sourcesOutputDir.set(project.layout.buildDirectory.dir("/generated/sources/openclover/test/java"))
+            sourcesOutputDir.set(project.layout.buildDirectory.dir("generated/sources/openclover/test/java"))
             dbDirInput.set(instJavaTask.map { it.dbDirOutput.get() })
             dbTmpDirPath.set(getCloverDbTmpDir(project))
             dbDirOutput.set(getCloverDbOutputDir(this))
